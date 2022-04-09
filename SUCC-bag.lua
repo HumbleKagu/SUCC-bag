@@ -19,7 +19,7 @@ function SUCC_bagDefaults()
 	SUCC_bagOptions.layout.columns ={}
 	SUCC_bagOptions.layout.columns.bag = 8
 	SUCC_bagOptions.layout.columns.bank = 8
-	SUCC_bagOptions.Clean_Up = 1
+	SUCC_bagOptions.MrPlow = 1
 	return SUCC_bagOptions
 end
 
@@ -73,13 +73,13 @@ end
 
 local function TitleLayout(frame)
 	if not frame.slotFrame then return end
-	if frame.cuBag and SUCC_bagOptions.Clean_Up == 1 then
+	if frame.mpBag and SUCC_bagOptions.MrPlow == 1 then
 		frame.title:ClearAllPoints()
-		frame.title:SetPoint('LEFT', frame.cuBag, 'RIGHT', 3, 0)
-		frame.cuBag:SetPoint('LEFT', frame.toggleButton, 'RIGHT', 3, 0)
-		if not frame.cuBag:IsVisible() then frame.cuBag:Show() end
+		frame.title:SetPoint('LEFT', frame.mpBag, 'RIGHT', 3, 0)
+		frame.mpBag:SetPoint('LEFT', frame.toggleButton, 'RIGHT', 3, 0)
+		if not frame.mpBag:IsVisible() then frame.mpBag:Show() end
 	else
-		if frame.cuBag then frame.cuBag:Hide() end
+		if frame.mpBag then frame.mpBag:Hide() end
 		frame.title:ClearAllPoints()
 		frame.title:SetPoint('LEFT', frame.toggleButton, 'RIGHT', 3, 0)
 	end
@@ -429,31 +429,32 @@ local function Essentials(frame)
 			GameTooltip:Show()
 		end)
 		frame.toggleButton:SetScript('OnLeave', function() GameTooltip:Hide() end)
-		if Clean_Up then
-			frame.cuBag = CreateFrame('Button', t .. 'CU_button', frame)
-			frame.cuBag:SetHeight(12)
-			frame.cuBag:SetWidth(12)
-			frame.cuBag:SetNormalTexture('Interface\\QuestFrame\\UI-Quest-BulletPoint')
-			frame.cuBag:SetHighlightTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight')
-			frame.cuBag:SetPushedTexture('Interface\\QuestFrame\\UI-Quest-BulletPoint')
-			frame.cuBag:GetNormalTexture():SetVertexColor(0.1, 1, 0.3)
-			frame.cuBag:GetNormalTexture():SetTexCoord(0.25, 0.75, 0.25, 0.75)
-			frame.cuBag:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
-			frame.cuBag:SetScript('OnClick', function()
+		if MrPlow then
+			local MrPlowL = AceLibrary and AceLibrary("AceLocale-2.2"):new("MrPlow")
+			frame.mpBag = CreateFrame('Button', t .. 'MP_button', frame)
+			frame.mpBag:SetHeight(12)
+			frame.mpBag:SetWidth(12)
+			frame.mpBag:SetNormalTexture('Interface\\QuestFrame\\UI-Quest-BulletPoint')
+			frame.mpBag:SetHighlightTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight')
+			frame.mpBag:SetPushedTexture('Interface\\QuestFrame\\UI-Quest-BulletPoint')
+			frame.mpBag:GetNormalTexture():SetVertexColor(0.1, 1, 0.3)
+			frame.mpBag:GetNormalTexture():SetTexCoord(0.25, 0.75, 0.25, 0.75)
+			frame.mpBag:RegisterForClicks('LeftButtonUp')
+			frame.mpBag:SetScript('OnClick', function()
 				local c = frame.title.t ~= '' and frame.title.t ~= nil and string.lower(frame.title.t) or 'bags'
-				if arg1 == 'RightButton' then
-					Clean_Up(c, 1)
+				if c == 'bank' then
+					MrPlow:Works(MrPlowL["Bank"])
 				else
-					Clean_Up(c)
+					MrPlow:Works()
 				end
 			end)
-			frame.cuBag:SetScript('OnEnter', function()
+			frame.mpBag:SetScript('OnEnter', function()
 				GameTooltip:SetOwner(this, 'ANCHOR_LEFT')
-				GameTooltip:AddLine('Left Click: Sort', 1, 1, 1)
-				GameTooltip:AddLine('Right Click: Reverse order' , 0.3, 0.8, 1)
+				GameTooltip:AddLine('Mr Plow', 1, 1, 1)
+				GameTooltip:AddLine('The Works' , 0.3, 0.8, 1)
 				GameTooltip:Show()
 			end)
-			frame.cuBag:SetScript('OnLeave', function() GameTooltip:Hide() end)
+			frame.mpBag:SetScript('OnLeave', function() GameTooltip:Hide() end)
 		end
 		frame.slotFrame:SetScript('OnHide', function() frame.toggleButton:GetNormalTexture():SetVertexColor(1, 1, 1) end)
 		frame.slotFrame:SetScript('OnShow', function() frame.toggleButton:GetNormalTexture():SetVertexColor(1, 0, 0) end)
@@ -943,25 +944,25 @@ local function CreateMenuFrame()
 	menu.override.t:SetWidth(200)
 	menu.override.t:SetText('Quality color above bag color:')
 
-	if Clean_Up then
-		menu.cleanup = CreateFrame('CheckButton', 'SBC_cleanUp', menu, 'UICheckButtonTemplate')
-		menu.cleanup:SetHeight(25)
-		menu.cleanup:SetWidth(25)
-		menu.cleanup:SetPoint('TOPRIGHT', menu.bank.columns, 'BOTTOMRIGHT', 4, -21)
-		menu.cleanup:SetChecked(SUCC_bagOptions.Clean_Up)
-		menu.cleanup:SetScript('OnClick', function()
+	if MrPlow then
+		menu.mrplow = CreateFrame('CheckButton', 'SBC_MrPlow', menu, 'UICheckButtonTemplate')
+		menu.mrplow:SetHeight(25)
+		menu.mrplow:SetWidth(25)
+		menu.mrplow:SetPoint('TOPRIGHT', menu.bank.columns, 'BOTTOMRIGHT', 4, -21)
+		menu.mrplow:SetChecked(SUCC_bagOptions.MrPlow)
+		menu.mrplow:SetScript('OnClick', function()
 			if this:GetChecked() == 1 then
-				SUCC_bagOptions.Clean_Up = 1
+				SUCC_bagOptions.MrPlow = 1
 			else
-				SUCC_bagOptions.Clean_Up = nil
+				SUCC_bagOptions.MrPlow = nil
 			end
 			TitleLayout(SUCC_bag)
 			TitleLayout(SUCC_bag.bank)
 		end)
-		menu.cleanup.t = menu.cleanup:CreateFontString(nil, 'OVERLAY', 'GameFontNormal')
-		menu.cleanup.t:SetPoint('RIGHT', menu.cleanup, 'LEFT', 10, 0)
-		menu.cleanup.t:SetWidth(90)
-		menu.cleanup.t:SetText('Clean_Up:')
+		menu.mrplow.t = menu.mrplow:CreateFontString(nil, 'OVERLAY', 'GameFontNormal')
+		menu.mrplow.t:SetPoint('RIGHT', menu.mrplow, 'LEFT', 10, 0)
+		menu.mrplow.t:SetWidth(90)
+		menu.mrplow.t:SetText('MrPlow:')
 	end
 
 	menu.reset = CreateFrame('Button', nil, menu, 'UIPanelButtonTemplate')
